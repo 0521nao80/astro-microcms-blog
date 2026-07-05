@@ -1,0 +1,154 @@
+---
+import { client } from "../library/microcms";
+import type { BlogResponse } from "../library/microcms";
+
+// microCMSからブログ記事一覧を取得（タイトル、ID、公開日のみ）
+const response = await client.get<BlogResponse>({
+  endpoint: "blogs",
+  queries: { fields: ["id", "title", "publishedAt"] },
+});
+---
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>マイ無料ブログ</title>
+    <style>
+      body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #f9f9f9;
+        color: #333;
+      }
+      h1 {
+        border-bottom: 3px solid #0070f3;
+        padding-bottom: 0.5rem;
+      }
+      ul {
+        list-style: none;
+        padding: 0;
+      }
+      li {
+        background: #fff;
+        margin-bottom: 1rem;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      a {
+        color: #0070f3;
+        text-decoration: none;
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      span {
+        color: #888;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🌟 マイ無料ブログ 🌟</h1>
+    <ul>
+      {response.contents.map((blog) => (
+        <li>
+          <a href={`/blog/${blog.id}`}>{blog.title}</a>
+          <span>{new Date(blog.publishedAt).toLocaleDateString('ja-JP')}</span>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+
+
+⑥ src/pages/blog/[id].astro（ブログ詳細・個別記事ページ）
+
+動的なルーティングを行い、個別記事を事前レンダリング（SSG）します。
+
+---
+import { client } from "../../library/microcms";
+import type { Blog, BlogResponse } from "../../library/microcms";
+
+// すべての個別記事ページのパス（URL）を事前に生成
+export async function getStaticPaths() {
+  const response = await client.get<BlogResponse>({ endpoint: "blogs" });
+  return response.contents.map((content) => ({
+    params: { id: content.id },
+    props: { blog: content },
+  }));
+}
+
+interface Props {
+  blog: Blog;
+}
+
+const { blog } = Astro.props;
+---
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{blog.title} | マイ無料ブログ</title>
+    <style>
+      body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background-color: #f9f9f9;
+        color: #333;
+        line-height: 1.8;
+      }
+      .back-link {
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        color: #0070f3;
+        text-decoration: none;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 1rem;
+      }
+      .date {
+        color: #888;
+        font-size: 0.9rem;
+        margin-bottom: 2rem;
+      }
+      .content {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+      /* microCMSのリッチエディタから出力されるHTMLの装飾 */
+      .content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+      }
+      .content h2 {
+        border-left: 5px solid #0070f3;
+        padding-left: 0.8rem;
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/" class="back-link">← 一覧に戻る</a>
+    <article>
+      <h1>{blog.title}</h1>
+      <p class="date">公開日: {new Date(blog.publishedAt).toLocaleDateString('ja-JP')}</p>
+      <div class="content" set:html={blog.content} />
+    </article>
+  </body>
+</html>
