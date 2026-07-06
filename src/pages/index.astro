@@ -1,67 +1,30 @@
 ---
-import { client } from "../library/microcms";
-import type { BlogResponse } from "../library/microcms";
-
-// microCMSからブログ記事一覧を取得（タイトル、ID、公開日のみ）
-const response = await client.get<BlogResponse>({
-  endpoint: "blogs",
-  queries: { fields: ["id", "title", "publishedAt"] },
-});
+import { getBlogs } from "../library/microcms";
+const response = await getBlogs({ fields: ["id", "title", "publishedAt"] });
 ---
+
+<!DOCTYPE html>
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>マイ無料ブログ</title>
+    <title>My MicroCMS Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      body {
-        font-family: 'Helvetica Neue', Arial, sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem;
-        background-color: #f9f9f9;
-        color: #333;
-      }
-      h1 {
-        border-bottom: 3px solid #0070f3;
-        padding-bottom: 0.5rem;
-      }
-      ul {
-        list-style: none;
-        padding: 0;
-      }
-      li {
-        background: #fff;
-        margin-bottom: 1rem;
-        padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      a {
-        color: #0070f3;
-        text-decoration: none;
-        font-size: 1.2rem;
-        font-weight: bold;
-      }
-      a:hover {
-        text-decoration: underline;
-      }
-      span {
-        color: #888;
-        font-size: 0.9rem;
-      }
+      body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+      ul { list-style: none; padding: 0; }
+      li { margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+      a { text-decoration: none; color: #0070f3; font-size: 1.2rem; font-weight: bold; }
+      a:hover { text-decoration: underline; }
+      .date { color: #666; font-size: 0.85rem; margin: 5px 0 0 0; }
     </style>
   </head>
   <body>
-    <h1>🌟 マイ無料ブログ 🌟</h1>
+    <h1>記事一覧</h1>
     <ul>
       {response.contents.map((blog) => (
         <li>
           <a href={`/blog/${blog.id}`}>{blog.title}</a>
-          <span>{new Date(blog.publishedAt).toLocaleDateString('ja-JP')}</span>
+          <p class="date">{new Date(blog.publishedAt).toLocaleDateString('ja-JP')}</p>
         </li>
       ))}
     </ul>

@@ -1,12 +1,10 @@
 import { createClient } from "microcms-js-sdk";
 
-// クライアントの初期化（環境変数を使用）
 export const client = createClient({
   serviceDomain: import.meta.env.MICROCMS_SERVICE_DOMAIN,
   apiKey: import.meta.env.MICROCMS_API_KEY,
 });
 
-// ブログ記事の型定義
 export interface Blog {
   id: string;
   createdAt: string;
@@ -17,10 +15,10 @@ export interface Blog {
   content: string;
 }
 
-// microCMSのレスポンス全体の型定義
-export interface BlogResponse {
-  contents: Blog[];
-  totalCount: number;
-  offset: number;
-  limit: number;
-}
+export const getBlogs = async (queries?: any) => {
+  return await client.get<{ contents: Blog[] }>({ endpoint: "blogs", queries });
+};
+
+export const getBlogDetail = async (contentId: string, queries?: any) => {
+  return await client.get<Blog>({ endpoint: "blogs", contentId, queries });
+};
